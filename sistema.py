@@ -277,60 +277,65 @@ class InventoryControl:
             result = ""
             total = 0
             col = 0
-            if query in self.products:
-                product_frame = tk.Frame(self.result_inner_frame, padx=10, pady=10, borderwidth=2, relief="groove")
-                product_frame.grid(row=0, column=col, padx=5, pady=5, sticky="n")
+            found = False
+            for product, models in self.products.items():
+                if query.lower() in product.lower():
+                    found = True
+                    product_frame = tk.Frame(self.result_inner_frame, padx=10, pady=10, borderwidth=2, relief="groove")
+                    product_frame.grid(row=0, column=col, padx=5, pady=5, sticky="n")
 
-                product_label = tk.Label(product_frame, text=f"Produto: {query}", font=("Arial", 12, "bold"))
-                product_label.pack()
+                    product_label = tk.Label(product_frame, text=f"Produto: {product}", font=("Arial", 12, "bold"))
+                    product_label.pack()
 
-                for model, serials in self.products[query].items():
-                    model_label = tk.Label(product_frame, text=f"  Modelo: {model}", font=("Arial", 10, "italic"))
-                    model_label.pack(anchor="w")
+                    for model, serials in models.items():
+                        model_label = tk.Label(product_frame, text=f"  Modelo: {model}", font=("Arial", 10, "italic"))
+                        model_label.pack(anchor="w")
 
-                    for serial in serials:
-                        serial_label = tk.Label(product_frame, text=f"    - {serial}")
-                        serial_label.pack(anchor="w")
+                        for serial in serials:
+                            serial_label = tk.Label(product_frame, text=f"    - {serial}")
+                            serial_label.pack(anchor="w")
 
-                    model_total_label = tk.Label(product_frame, text=f"    Total {model}: {len(serials)}", font=("Arial", 10, "bold"))
-                    model_total_label.pack(anchor="w")
+                        model_total_label = tk.Label(product_frame, text=f"    Total {model}: {len(serials)}", font=("Arial", 10, "bold"))
+                        model_total_label.pack(anchor="w")
 
-                    total += len(serials)
+                        total += len(serials)
 
-                total_label = tk.Label(product_frame, text=f"\nTotal: {total}", font=("Arial", 12, "bold"))
-                total_label.pack(anchor="w")
+                    total_label = tk.Label(product_frame, text=f"\nTotal: {total}", font=("Arial", 12, "bold"))
+                    total_label.pack(anchor="w")
 
-                col += 1
-            else:
-                for product, models in self.products.items():
-                    if query in models:
+                    col += 1
+
+                for model, serials in models.items():
+                    if query.lower() in model.lower() or any(query.lower() in serial.lower() for serial in serials):
+                        found = True
                         product_frame = tk.Frame(self.result_inner_frame, padx=10, pady=10, borderwidth=2, relief="groove")
                         product_frame.grid(row=0, column=col, padx=5, pady=5, sticky="n")
 
                         product_label = tk.Label(product_frame, text=f"Produto: {product}", font=("Arial", 12, "bold"))
                         product_label.pack()
 
-                        model_label = tk.Label(product_frame, text=f"  Modelo: {query}", font=("Arial", 10, "italic"))
+                        model_label = tk.Label(product_frame, text=f"  Modelo: {model}", font=("Arial", 10, "italic"))
                         model_label.pack(anchor="w")
 
-                        for serial in models[query]:
-                            serial_label = tk.Label(product_frame, text=f"    - {serial}")
-                            serial_label.pack(anchor="w")
+                        for serial in serials:
+                            if query.lower() in serial.lower():
+                                serial_label = tk.Label(product_frame, text=f"    - {serial}")
+                                serial_label.pack(anchor="w")
 
-                        model_total_label = tk.Label(product_frame, text=f"    Total {query}: {len(models[query])}", font=("Arial", 10, "bold"))
+                        model_total_label = tk.Label(product_frame, text=f"    Total {model}: {len(serials)}", font=("Arial", 10, "bold"))
                         model_total_label.pack(anchor="w")
 
-                        total = len(models[query])
+                        total += len(serials)
 
                         total_label = tk.Label(product_frame, text=f"\nTotal: {total}", font=("Arial", 12, "bold"))
                         total_label.pack(anchor="w")
 
                         col += 1
-                        break
-                else:
-                    result += "Nenhum resultado encontrado."
-                    result_label = tk.Label(self.result_inner_frame, text=result, font=("Arial", 12, "bold"))
-                    result_label.grid(row=0, column=0, padx=5, pady=5, sticky="n")
+
+            if not found:
+                result += "Nenhum resultado encontrado."
+                result_label = tk.Label(self.result_inner_frame, text=result, font=("Arial", 12, "bold"))
+                result_label.grid(row=0, column=0, padx=5, pady=5, sticky="n")
 
             self.result_canvas.update_idletasks()
             self.result_canvas.configure(scrollregion=self.result_canvas.bbox("all"))
